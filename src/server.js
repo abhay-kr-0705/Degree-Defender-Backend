@@ -89,11 +89,33 @@ app.use('/api/public', publicRoutes);
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));
 
+// Root route - API status
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Degree Defenders API',
+    version: '1.0.0',
+    status: 'operational',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/health',
+      auth: '/api/auth',
+      certificates: '/api/certificates',
+      verifications: '/api/verifications',
+      institutions: '/api/institutions',
+      admin: '/api/admin',
+      public: '/api/public'
+    },
+    documentation: 'https://github.com/abhay-kr-0705/Degree-Defender-Backend'
+  });
+});
+
 // 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     error: 'Route not found',
     message: `The requested endpoint ${req.originalUrl} does not exist.`,
+    availableEndpoints: ['/health', '/api/auth', '/api/certificates', '/api/verifications', '/api/institutions', '/api/admin', '/api/public']
   });
 });
 

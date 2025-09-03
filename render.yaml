@@ -9,9 +9,7 @@ services:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        fromDatabase:
-          name: degree-defenders-db
-          property: connectionString
+        value: "postgresql://neondb_owner:npg_K8wpdyQrZe4m@ep-soft-violet-adytpb14-pooler.c-2.us-east-1.aws.neon.tech/degree-defenders-db?sslmode=require&channel_binding=require"
       - key: JWT_SECRET
         generateValue: true
       - key: BCRYPT_ROUNDS
@@ -32,9 +30,9 @@ services:
         value: "0xc075e5ac8ab19b168baa326511c5e678cb9fed526de7520e93e7b4b5ed299b23"
       - key: WALLET_ADDRESS
         value: "0xBBe9d4161b6b5f20756c7b8C83b3Bd0C62dE9378"
-
-databases:
-  - name: degree-defenders-db
-    databaseName: degree_defenders
-    user: degree_defenders_user
-    plan: free
+      - key: PRIVATE_SIGNING_KEY
+        value: "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC4E/n9wHRzjW+1\n54Vh/M2vXfNbxtkKuHEqHV9h0KOsVWB0Ip/gVcwz0CJ870xjoOWjZoa7CNyQJgqH\nzjlmfO7Za+c5zA3iIKHcBTDFaSZItvjCpXxH8Q+ew1w59sA6f61Car9A6jaKmrc3\nRRC1oFeNVw0PcsSiRM9W93OXgrFc8KOLhuq3kN4fcjJGtqZ7Y9zeVziyOn/apZN2\n/HGGEDlpCvC8pOdsc5T0SEjaQAHmZ8iFxattCSM8gwtnB7oNpOy/bYKNk+i3pCGk\n8LfGzEHgkadQSq1nRoBX12Xpg0Bu6gl9Etwb7yM6gaeylvnXHI0olXiGrlugzuqy\n7yvc1eN7AgMBAAECggEABLNR42ZqMtcuPpViZQ2pDOzXvYS23xy1mw8z89H5k/l8\nJIsLzRUzyTDr6IfNyg9+Pa1tDFKeGzo1c6FS+uh+yuOD/IhW5GrT50Pkqm3Uce/m\nK0ZBha7EqNexP7Oq1fOTr4n9R0GT0fdAbXNgiVrGUZAi/719Au3B46Ue+QP31nkt\nYdCNIPjgPPrWKdhlvX6Binv001w3FB6e6XweztZwV9HV3w4VmJGf5I2JX1ircjEC\nuXP/8zICg6+O+g6A7UdPrXEUZOi/zC3B3HsVy0fDuvWmVRJLNIZDSUHhlkZJIvBI\nKieUXIcvCxzl8dzH2vXLPfq5L3k5WUX7sAMDJ9DtnQKBgQD+f0MHEVhkdxjZaxDt\nGBI5yEm+le1QJYdgITtuiEyqF8iMbb3ilHAOTfKony2kHuCOC9hvgY/ws9xBWen1\nJPTtwrxG5iEXb3AfJvnfYw4B26Q452JStpoTQWVuvArRSDFEt1BtACbGxDiUf5yT\n18735tr/a/wkNBO45GbbqPQBHQKBgQC5KkIP7mxNAvlVsbk3ElvN64bQQyZ+XFz9\ns6yfGz/5vzgwnsLRWFMAT/374R4GJbCLQF/m6d+Uosx44azNIFVKNgSNREzZP2Ya\nKpotnbX86AixOZ6n0PSog7f5csle00meO6oIS1mspqI/08tnB//rG/MMO+e1KzVF\n2NPbNGerdwKBgQDzwok818xGThyrAvXvYkLyvXiE562qOofz92CpejuUH7ujZeme\ngHbj/J0UDYL10+1ZoNbp1rs73cp1fd2tRHykzwTvE7VWcRJ/hCGJaaMc/HfLWTS/\n7M6e6uBwtAPYeMFYBA0wmhiKAZ///ErJAMfogmH4jEGxm3/YdExg0O8FsQKBgCN2\nA1bXu2f4RNXzhlwUqP5Dt/rUkV+rwqdXrJx/9H2Y8GLnVLoQ5zxtFWASmdRljWzt\ntDAd5BKsJuqTlatnIM5oj/CZ/vmwGZazR/mqdXrs2RVPyqGq89/98dLU99mwLy4d\nkQ+rlo3pD7OXlSGzN4DIRoC2TEa28qngv5oAbEY7AoGBAMIf71HDxwrcw8D8+ldE\nUm/MHHMF41JIIFUvT1e2YoX2QNAqSuXyB3PpanLnBbxgI8xafrVQmoDTMfxqW8v8\nedzzXXab27kMMKzVrqPsu8KRaP1ZpUabTY+arDy5J9BL7x4GqADht0J0llgYcjcI\nT2c7MFhpG4NXiIQf4MrvLxi7\n-----END PRIVATE KEY-----"
+      - key: PUBLIC_SIGNING_KEY
+        value: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuBP5/cB0c41vteeFYfzN\nr13zW8bZCrhxKh1fYdCjrFVgdCKf4FXMM9AifO9MY6Dlo2aGuwjckCYKh845Znzu\n2WvnOcwN4iCh3AUwxWkmSLb4wqV8R/EPnsNcOfbAOn+tQmq/QOo2ipq3N0UQtaBX\njVcND3LEokTPVvdzl4KxXPCji4bqt5DeH3IyRrame2Pc3lc4sjp/2qWTdvxxhhA5\naQrwvKTnbHOU9EhI2kAB5mfIhcWrbQkjPIMLZwe6DaTsv22CjZPot6QhpPC3xsxB\n4JGnUEqtZ0aAV9dl6YNAbuoJfRLcG+8jOoGnspb51xyNKJV4hq5boM7qsu8r3NXj\newIDAQAB\n-----END PUBLIC KEY-----"
+      - key: CONTRACT_ADDRESS
+        value: ""
