@@ -83,7 +83,7 @@ class ApiClient {
         baseURL: this.instance.defaults.baseURL,
         error: error.response?.data || error.message
       });
-      throw new Error(error.response?.data?.error || 'Request failed');
+      throw new Error(error.response?.data?.message || error.response?.data?.error || 'Request failed');
     }
   }
 
