@@ -32,7 +32,7 @@ async function main() {
       lastName: 'Administrator',
       role: 'SUPER_ADMIN',
       isActive: true,
-      isEmailVerified: true,
+      emailVerified: true,
     },
   });
 
@@ -47,7 +47,7 @@ async function main() {
       lastName: 'Verifier',
       role: 'VERIFIER',
       isActive: true,
-      isEmailVerified: true,
+      emailVerified: true,
     },
   });
 
@@ -62,7 +62,7 @@ async function main() {
       lastName: 'Administrator',
       role: 'UNIVERSITY_ADMIN',
       isActive: true,
-      isEmailVerified: true,
+      emailVerified: true,
     },
   });
 
@@ -71,27 +71,45 @@ async function main() {
     {
       name: 'Ranchi University',
       code: 'RU001',
+      type: 'UNIVERSITY',
       address: 'Ranchi, Jharkhand',
-      contactEmail: 'admin@ranchiuniversity.ac.in',
-      contactPhone: '+91-651-2345678',
+      city: 'Ranchi',
+      state: 'Jharkhand',
+      pincode: '834008',
+      phone: '+91-651-2345678',
+      email: 'admin@ranchiuniversity.ac.in',
+      website: 'https://ranchiuniversity.ac.in',
+      establishedYear: 1960,
       isVerified: true,
       isActive: true,
     },
     {
       name: 'Birla Institute of Technology',
       code: 'BIT001',
+      type: 'TECHNICAL_INSTITUTE',
       address: 'Mesra, Ranchi, Jharkhand',
-      contactEmail: 'admin@bitmesra.ac.in',
-      contactPhone: '+91-651-2275444',
+      city: 'Ranchi',
+      state: 'Jharkhand',
+      pincode: '835215',
+      phone: '+91-651-2275444',
+      email: 'admin@bitmesra.ac.in',
+      website: 'https://bitmesra.ac.in',
+      establishedYear: 1955,
       isVerified: true,
       isActive: true,
     },
     {
       name: 'Jharkhand University of Technology',
       code: 'JUT001',
+      type: 'UNIVERSITY',
       address: 'Ranchi, Jharkhand',
-      contactEmail: 'admin@jut.ac.in',
-      contactPhone: '+91-651-2234567',
+      city: 'Ranchi',
+      state: 'Jharkhand',
+      pincode: '834004',
+      phone: '+91-651-2234567',
+      email: 'admin@jut.ac.in',
+      website: 'https://jut.ac.in',
+      establishedYear: 2009,
       isVerified: true,
       isActive: true,
     },
@@ -138,30 +156,31 @@ async function main() {
         update: {},
         create: {
           email: adminData.email,
-          password: hashedPassword,
+          password: universityPassword,
           firstName: adminData.firstName,
           lastName: adminData.lastName,
           role: 'UNIVERSITY_ADMIN',
           institutionId: institution.id,
           isActive: true,
-          isEmailVerified: true,
+          emailVerified: true,
         },
       });
     }
   }
 
-  // Create sample verifier user
+  // Create student user for testing
+  const studentPassword = await bcrypt.hash('Student@123', 12);
   await prisma.user.upsert({
-    where: { email: 'verifier@degreedefenders.gov.in' },
+    where: { email: 'student@degreedefenders.gov.in' },
     update: {},
     create: {
-      email: 'verifier@degreedefenders.gov.in',
-      password: hashedPassword,
-      firstName: 'Certificate',
-      lastName: 'Verifier',
-      role: 'VERIFIER',
+      email: 'student@degreedefenders.gov.in',
+      password: studentPassword,
+      firstName: 'Test',
+      lastName: 'Student',
+      role: 'STUDENT',
       isActive: true,
-      isEmailVerified: true,
+      emailVerified: true,
     },
   });
 
@@ -176,8 +195,10 @@ async function main() {
         certificateNumber: 'RU/2023/BSC/001',
         studentName: 'Rahul Kumar Singh',
         course: 'Bachelor of Science in Computer Science',
-        issueDate: new Date('2023-06-15'),
+        passingYear: 2023,
+        dateOfIssue: new Date('2023-06-15'),
         grade: 'First Class',
+        type: 'DEGREE',
         institutionId: ranchiuniversity.id,
         status: 'VERIFIED',
         isLegacy: false,
@@ -186,8 +207,10 @@ async function main() {
         certificateNumber: 'RU/2022/MBA/045',
         studentName: 'Priya Sharma',
         course: 'Master of Business Administration',
-        issueDate: new Date('2022-05-20'),
+        passingYear: 2022,
+        dateOfIssue: new Date('2022-05-20'),
         grade: 'Distinction',
+        type: 'DEGREE',
         institutionId: ranchiuniversity.id,
         status: 'VERIFIED',
         isLegacy: true,
@@ -196,8 +219,10 @@ async function main() {
         certificateNumber: 'RU/2023/BTECH/123',
         studentName: 'Amit Kumar',
         course: 'Bachelor of Technology in Information Technology',
-        issueDate: new Date('2023-07-10'),
+        passingYear: 2023,
+        dateOfIssue: new Date('2023-07-10'),
         grade: 'Second Class',
+        type: 'DEGREE',
         institutionId: ranchiuniversity.id,
         status: 'PENDING',
         isLegacy: false,
@@ -267,14 +292,39 @@ async function main() {
 
   console.log('✅ Database seeding completed successfully!');
   console.log('\n📊 Seeded data summary:');
-  console.log(`- Super Admin: admin@degreedefenders.gov.in (password: Admin@123)`);
-  console.log(`- Verifier: verifier@degreedefenders.gov.in (password: Verifier@123)`);
-  console.log(`- University Admin: university@degreedefenders.gov.in (password: University@123)`);
-  console.log(`- Institutions: ${institutions.length}`);
-  console.log(`- Institution Admins: ${institutionAdmins.length}`);
-  console.log(`- Sample Certificates: 3`);
-  console.log(`- System Configurations: ${configs.length + 1}`);
-  console.log('\n⚠️  Remember to change default passwords in production!');
+  console.log('\n🔐 ADMIN CREDENTIALS:');
+  console.log('====================');
+  console.log('📧 Super Admin:');
+  console.log('   Email: admin@degreedefenders.gov.in');
+  console.log('   Password: Admin@123');
+  console.log('   Role: SUPER_ADMIN (Full system access)');
+  console.log('');
+  console.log('📧 Certificate Verifier:');
+  console.log('   Email: verifier@degreedefenders.gov.in');
+  console.log('   Password: Verifier@123');
+  console.log('   Role: VERIFIER (Certificate verification)');
+  console.log('');
+  console.log('📧 University Admin:');
+  console.log('   Email: university@degreedefenders.gov.in');
+  console.log('   Password: University@123');
+  console.log('   Role: UNIVERSITY_ADMIN (Institution management)');
+  console.log('');
+  console.log('📧 Student Account:');
+  console.log('   Email: student@degreedefenders.gov.in');
+  console.log('   Password: Student@123');
+  console.log('   Role: STUDENT (Public verification)');
+  console.log('');
+  console.log('🏛️ Institution Admins:');
+  console.log('   Email: admin@ranchiuniversity.ac.in');
+  console.log('   Email: admin@bitmesra.ac.in');
+  console.log('   Email: admin@jut.ac.in');
+  console.log('   Password: University@123 (for all institution admins)');
+  console.log('   Role: UNIVERSITY_ADMIN');
+  console.log('');
+  console.log(`📊 Seeded: ${institutions.length} institutions, ${institutionAdmins.length} institution admins, 3 certificates, ${configs.length + 1} configs`);
+  console.log('\n⚠️  IMPORTANT: Change default passwords in production!');
+  console.log('🔗 Frontend URL: https://degree-defenders-frontend.netlify.app');
+  console.log('🔗 Backend URL: https://degree-defender-backend.onrender.com');
 }
 
 main()
