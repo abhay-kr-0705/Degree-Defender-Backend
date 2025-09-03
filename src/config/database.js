@@ -24,7 +24,7 @@ const connectDB = async () => {
       });
 
       // Test the connection with retry logic
-      let retries = 3;
+      let retries = 5;
       while (retries > 0) {
         try {
           await prisma.$connect();
@@ -34,11 +34,11 @@ const connectDB = async () => {
         } catch (error) {
           retries--;
           if (retries === 0) {
-            logger.error('❌ All connection attempts failed');
+            logger.error('❌ All connection attempts failed:', error);
             throw error;
           }
           logger.warn(`Database connection attempt failed, retrying... (${retries} attempts left)`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 3000));
         }
       }
     }

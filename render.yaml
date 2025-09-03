@@ -37,6 +37,10 @@ services:
       - key: CONTRACT_ADDRESS
         value: ""
       - key: DATABASE_CONNECTION_LIMIT
-        value: "5"
+        value: "10"
       - key: DATABASE_POOL_TIMEOUT
-        value: "20"
+        value: "30"
+      - key: DATABASE_STATEMENT_TIMEOUT
+        value: "30000"
+      - key: DATABASE_IDLE_TIMEOUT
+        value: "300000"

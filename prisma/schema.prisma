@@ -12,9 +12,8 @@ generator seed {
 
 datasource db {
   provider  = "postgresql"
-  url  	    = env("DATABASE_URL")
-  // uncomment next line if you use Prisma <5.10
-  // directUrl = env("DATABASE_URL_UNPOOLED")
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 enum UserRole {
@@ -155,6 +154,7 @@ model Certificate {
   institutionId     String
   verifications     Verification[]
   anomalies         Anomaly[]
+  auditLogs         AuditLog[]
   
   @@map("certificates")
 }
@@ -190,6 +190,7 @@ model Verification {
   verifiedById      String?
   institution       Institution?       @relation(fields: [institutionId], references: [id])
   institutionId     String?
+  auditLogs         AuditLog[]
   
   @@map("verifications")
 }
@@ -214,20 +215,23 @@ model Anomaly {
 
 model AuditLog {
   id                String             @id @default(cuid())
+  category          String             // AUTHENTICATION, CERTIFICATE, VERIFICATION, etc.
   action            String
-  resource          String
-  resourceId        String?
-  oldValues         Json?
-  newValues         Json?
+  details           String?
   ipAddress         String?
   userAgent         String?
-  
+  success           Boolean            @default(true)
+
   createdAt         DateTime           @default(now())
-  
+
   // Relations
   user              User?              @relation(fields: [userId], references: [id])
   userId            String?
-  
+  certificate       Certificate?       @relation(fields: [certificateId], references: [id])
+  certificateId     String?
+  verification      Verification?      @relation(fields: [verificationId], references: [id])
+  verificationId    String?
+
   @@map("audit_logs")
 }
 
@@ -274,5 +278,21 @@ model BlacklistedEntity {
   @@map("blacklisted_entities")
 }
 
-// Global indexes are not supported in Prisma
-// Indexes are defined within each model block
+model SecurityIncident {
+  id                String             @id @default(cuid())
+  type              String
+  severity          String
+  description       String
+  status            String             @default("OPEN")
+  ipAddress         String?
+  details           Json?
+  
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  // Relations
+  userId            String?
+  certificateId     String?
+  
+  @@map("security_incidents")
+}
