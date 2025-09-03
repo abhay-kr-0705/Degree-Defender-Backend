@@ -16,6 +16,8 @@
     "db:studio": "npx prisma studio",
     "db:check": "node scripts/migrate-db.js",
     "db:deploy": "node scripts/deploy-schema.js",
+    "db:health": "node scripts/connection-health.js",
+    "db:test": "node scripts/test-connection.js",
     "postinstall": "npx prisma generate"
   },
   "keywords": [

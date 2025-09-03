@@ -3,6 +3,14 @@ const fs = require('fs');
 const path = require('path');
 
 async function deploySchema() {
+  // Validate DATABASE_URL
+  if (!process.env.DATABASE_URL) {
+    console.error('❌ DATABASE_URL environment variable is not set');
+    process.exit(1);
+  }
+
+  console.log('🔗 Using database:', process.env.DATABASE_URL.replace(/:[^:@]*@/, ':***@'));
+
   const prisma = new PrismaClient({
     datasources: {
       db: {

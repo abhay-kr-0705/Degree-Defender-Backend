@@ -18,7 +18,7 @@ const { logger } = require('./utils/logger');
 const { connectDB } = require('./config/database');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 10000;
 
 // Security middleware
 app.use(helmet({
@@ -166,8 +166,10 @@ const server = app.listen(PORT, async () => {
     logger.info(`🚀 Server running on port ${PORT}`);
     logger.info(`📊 Environment: ${process.env.NODE_ENV}`);
     logger.info(`🔗 API Base URL: http://localhost:${PORT}/api`);
+    logger.info(`🗄️ Database: ${process.env.DATABASE_URL ? 'Connected to Neon' : 'Not configured'}`);
   } catch (error) {
     logger.error('Failed to start server:', error);
+    logger.error('Database URL configured:', !!process.env.DATABASE_URL);
     process.exit(1);
   }
 });

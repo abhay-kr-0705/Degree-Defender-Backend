@@ -3,13 +3,13 @@ services:
     name: degree-defenders-backend
     env: node
     plan: free
-    buildCommand: npm install && npx prisma generate && npm run db:deploy && npm run db:seed
+    buildCommand: npm install && npx prisma generate && npm run db:health && npm run db:deploy && npm run db:seed
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: DATABASE_URL
-        value: "postgresql://neondb_owner:npg_K8wpdyQrZe4m@ep-soft-violet-adytpb14-pooler.c-2.us-east-1.aws.neon.tech/degree-defenders-db?sslmode=require&channel_binding=require"
+        value: "postgresql://neondb_owner:npg_Vn2AteHPuN7B@ep-wild-resonance-a1cqzct2-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
       - key: JWT_SECRET
         generateValue: true
       - key: BCRYPT_ROUNDS
@@ -36,3 +36,9 @@ services:
         value: "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuBP5/cB0c41vteeFYfzN\nr13zW8bZCrhxKh1fYdCjrFVgdCKf4FXMM9AifO9MY6Dlo2aGuwjckCYKh845Znzu\n2WvnOcwN4iCh3AUwxWkmSLb4wqV8R/EPnsNcOfbAOn+tQmq/QOo2ipq3N0UQtaBX\njVcND3LEokTPVvdzl4KxXPCji4bqt5DeH3IyRrame2Pc3lc4sjp/2qWTdvxxhhA5\naQrwvKTnbHOU9EhI2kAB5mfIhcWrbQkjPIMLZwe6DaTsv22CjZPot6QhpPC3xsxB\n4JGnUEqtZ0aAV9dl6YNAbuoJfRLcG+8jOoGnspb51xyNKJV4hq5boM7qsu8r3NXj\newIDAQAB\n-----END PUBLIC KEY-----"
       - key: CONTRACT_ADDRESS
         value: ""
+      - key: DATABASE_CONNECTION_LIMIT
+        value: "5"
+      - key: DATABASE_POOL_TIMEOUT
+        value: "20"
+      - key: DATABASE_URL_UNPOOLED
+        value: "postgresql://neondb_owner:npg_Vn2AteHPuN7B@ep-wild-resonance-a1cqzct2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"

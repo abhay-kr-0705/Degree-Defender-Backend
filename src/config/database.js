@@ -21,8 +21,8 @@ const connectDB = async () => {
         },
       });
 
-      // Test the connection with retry logic
-      let retries = 3;
+      // Test the connection with retry logic and connection pooling
+      let retries = 5;
       while (retries > 0) {
         try {
           await prisma.$connect();
@@ -33,7 +33,15 @@ const connectDB = async () => {
           retries--;
           if (retries === 0) throw error;
           logger.warn(`Database connection attempt failed, retrying... (${retries} attempts left)`);
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Disconnect before retry to avoid connection pool issues
+          try {
+            await prisma.$disconnect();
+          } catch (disconnectError) {
+            // Ignore disconnect errors during retry
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 3000));
         }
       }
     }
@@ -50,9 +58,14 @@ const connectDB = async () => {
 
 const disconnectDB = async () => {
   if (prisma) {
-    await prisma.$disconnect();
-    prisma = null;
-    logger.info('🔌 Database disconnected');
+    try {
+      await prisma.$disconnect();
+      prisma = null;
+      logger.info('🔌 Database disconnected');
+    } catch (error) {
+      logger.warn('Warning during disconnect:', error.message);
+      prisma = null;
+    }
   }
 };
 
