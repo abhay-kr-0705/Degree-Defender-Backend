@@ -15,6 +15,7 @@
     "db:reset": "npx prisma migrate reset --force",
     "db:studio": "npx prisma studio",
     "db:check": "node scripts/migrate-db.js",
+    "db:deploy": "node scripts/deploy-schema.js",
     "postinstall": "npx prisma generate"
   },
   "keywords": [
