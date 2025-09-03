@@ -14,6 +14,7 @@ import {
 import Layout from '../components/layout/Layout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
+import ProtectedRoute from '../components/auth/ProtectedRoute';
 import { useAuthStore } from '../store/authStore';
 import apiClient from '../lib/api';
 
@@ -91,8 +92,9 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <Layout title="Dashboard - Degree Defenders">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <ProtectedRoute requiredRole={['SUPER_ADMIN', 'UNIVERSITY_ADMIN', 'VERIFIER']}>
+      <Layout title="Dashboard - Degree Defenders">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-secondary-900 mb-2">
@@ -171,7 +173,7 @@ const Dashboard: React.FC = () => {
               </Button>
             </div>
             
-            {recentVerifications?.items?.length > 0 ? (
+            {recentVerifications?.items && recentVerifications.items.length > 0 ? (
               <div className="space-y-4">
                 {recentVerifications.items.map((verification: any) => (
                   <div key={verification.id} className="flex items-center justify-between p-4 bg-secondary-50 rounded-lg">
@@ -221,7 +223,7 @@ const Dashboard: React.FC = () => {
                 </Button>
               </div>
               
-              {recentAnomalies?.items?.length > 0 ? (
+              {recentAnomalies?.items && recentAnomalies.items.length > 0 ? (
                 <div className="space-y-4">
                   {recentAnomalies.items.map((anomaly: any) => (
                     <div key={anomaly.id} className="flex items-start space-x-3 p-4 bg-warning-50 rounded-lg">
@@ -279,8 +281,9 @@ const Dashboard: React.FC = () => {
             </Button>
           </div>
         </Card>
-      </div>
-    </Layout>
+        </div>
+      </Layout>
+    </ProtectedRoute>
   );
 };
 

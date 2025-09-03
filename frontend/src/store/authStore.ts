@@ -90,12 +90,14 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
+        set({ isLoading: true });
         try {
           const user = await apiClient.getCurrentUser();
           set({
             user,
             token,
             isAuthenticated: true,
+            isLoading: false,
           });
         } catch (error) {
           // Token is invalid
@@ -104,6 +106,7 @@ export const useAuthStore = create<AuthState>()(
             user: null,
             token: null,
             isAuthenticated: false,
+            isLoading: false,
           });
         }
       },

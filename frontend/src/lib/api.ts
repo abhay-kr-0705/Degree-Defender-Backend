@@ -31,6 +31,12 @@ class ApiClient {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+        
+        // Add CORS headers
+        config.headers['Access-Control-Allow-Origin'] = '*';
+        config.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+        config.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept, Authorization';
+        
         return config;
       },
       (error) => {
@@ -47,7 +53,12 @@ class ApiClient {
         if (error.response?.status === 401) {
           // Token expired or invalid
           Cookies.remove('auth_token');
-          window.location.href = '/login';
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
+          }
+        } else if (error.response?.status === 403) {
+          // Forbidden - user doesn't have permission
+          toast.error('Access denied. Please check your permissions.');
         } else if (error.response?.status >= 500) {
           toast.error('Server error. Please try again later.');
         } else if (error.response?.data?.error) {
