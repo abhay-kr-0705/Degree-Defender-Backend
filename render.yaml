@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: degree-defenders-backend
+    env: node
+    plan: free
+    buildCommand: npm install && npx prisma generate && npx prisma db push
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: degree-defenders-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: BCRYPT_ROUNDS
+        value: "12"
+      - key: CORS_ORIGIN
+        value: "https://degree-defender-frontend.vercel.app"
+      - key: BLOCKCHAIN_ENABLED
+        value: "true"
+      - key: ETHEREUM_NETWORK
+        value: "mainnet"
+      - key: ETHEREUM_RPC_URL
+        value: "https://mainnet.infura.io/v3/9f56a1bd26f7412dada9bb741714ddf2"
+      - key: INFURA_PROJECT_ID
+        value: "9f56a1bd26f7412dada9bb741714ddf2"
+      - key: BLOCKCHAIN_MANDATORY
+        value: "true"
+      - key: PRIVATE_KEY
+        value: "0xc075e5ac8ab19b168baa326511c5e678cb9fed526de7520e93e7b4b5ed299b23"
+      - key: WALLET_ADDRESS
+        value: "0xBBe9d4161b6b5f20756c7b8C83b3Bd0C62dE9378"
+
+databases:
+  - name: degree-defenders-db
+    databaseName: degree_defenders
+    user: degree_defenders_user
+    plan: free
