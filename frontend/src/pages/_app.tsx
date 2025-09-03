@@ -10,6 +10,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });
@@ -20,11 +21,27 @@ export default function App({ Component, pageProps }: AppProps) {
 
   useEffect(() => {
     setIsClient(true);
-    checkAuth();
+    // Only check auth if we're on a protected route
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path !== '/login' && path !== '/register' && path !== '/') {
+        checkAuth();
+      }
+    }
   }, [checkAuth]);
 
   if (!isClient) {
-    return null;
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        fontSize: '18px'
+      }}>
+        Loading...
+      </div>
+    );
   }
 
   return (
