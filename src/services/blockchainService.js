@@ -23,30 +23,39 @@ class BlockchainService {
    */
   async initializeBlockchain() {
     try {
-      if (!process.env.ETHEREUM_RPC_URL) {
-        logger.error('Blockchain configuration missing. ETHEREUM_RPC_URL is required.');
-        throw new Error('Blockchain is mandatory but not configured properly');
-      }
-
-      this.provider = new ethers.JsonRpcProvider(process.env.ETHEREUM_RPC_URL);
+      // Use provided Infura endpoint as mandatory blockchain connection
+      const infuraUrl = process.env.ETHEREUM_RPC_URL || 'https://mainnet.infura.io/v3/9f56a1bd26f7412dada9bb741714ddf2';
       
-      // For certificate hashing and verification, we don't need a private key initially
-      // We'll use the provider for read operations and hash generation
+      this.provider = new ethers.JsonRpcProvider(infuraUrl);
+      
+      // Test connection to ensure blockchain is accessible
+      const network = await this.provider.getNetwork();
+      logger.info(`✅ Connected to blockchain network: ${network.name} (Chain ID: ${network.chainId})`);
+      
+      // Initialize wallet if private key is provided
       if (process.env.PRIVATE_KEY) {
         this.wallet = new ethers.Wallet(process.env.PRIVATE_KEY, this.provider);
+        logger.info(`✅ Wallet initialized: ${this.wallet.address}`);
+      } else {
+        logger.warn('⚠️ No private key provided - read-only blockchain access');
       }
       
+      // Initialize contract if address is provided
       if (process.env.CONTRACT_ADDRESS) {
         this.contract = new ethers.Contract(
           process.env.CONTRACT_ADDRESS,
           this.contractABI,
-          this.wallet
+          this.wallet || this.provider
         );
+        logger.info(`✅ Smart contract initialized: ${process.env.CONTRACT_ADDRESS}`);
+      } else {
+        logger.warn('⚠️ No contract address provided - using hash-based validation');
       }
 
-      logger.info('✅ Blockchain service initialized');
+      logger.info('✅ Blockchain service initialized successfully');
     } catch (error) {
       logger.error('❌ Blockchain initialization failed:', error);
+      throw new Error('Blockchain connection is mandatory but failed to initialize');
     }
   }
 

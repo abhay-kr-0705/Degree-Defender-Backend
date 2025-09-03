@@ -19,6 +19,7 @@
     "db:health": "node scripts/connection-health.js",
     "db:test": "node scripts/test-connection.js",
     "db:force-deploy": "node scripts/force-deploy-schema.js",
+    "db:manual-deploy": "node scripts/manual-deploy.js",
     "postinstall": "npx prisma generate"
   },
   "keywords": [

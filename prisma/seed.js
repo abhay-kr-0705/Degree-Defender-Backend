@@ -17,18 +17,50 @@ async function main() {
     },
   });
 
-  // Create default super admin user
-  const hashedPassword = await bcrypt.hash('Admin@123', 12);
+  // Create admin users with different roles for testing
+  const adminPassword = await bcrypt.hash('Admin@123', 12);
+  const verifierPassword = await bcrypt.hash('Verifier@123', 12);
+  const universityPassword = await bcrypt.hash('University@123', 12);
   
   const superAdmin = await prisma.user.upsert({
     where: { email: 'admin@degreedefenders.gov.in' },
     update: {},
     create: {
       email: 'admin@degreedefenders.gov.in',
-      password: hashedPassword,
+      password: adminPassword,
       firstName: 'System',
       lastName: 'Administrator',
       role: 'SUPER_ADMIN',
+      isActive: true,
+      isEmailVerified: true,
+    },
+  });
+
+  // Create Verifier account
+  const verifierAdmin = await prisma.user.upsert({
+    where: { email: 'verifier@degreedefenders.gov.in' },
+    update: {},
+    create: {
+      email: 'verifier@degreedefenders.gov.in',
+      password: verifierPassword,
+      firstName: 'Certificate',
+      lastName: 'Verifier',
+      role: 'VERIFIER',
+      isActive: true,
+      isEmailVerified: true,
+    },
+  });
+
+  // Create University Admin account
+  const universityAdmin = await prisma.user.upsert({
+    where: { email: 'university@degreedefenders.gov.in' },
+    update: {},
+    create: {
+      email: 'university@degreedefenders.gov.in',
+      password: universityPassword,
+      firstName: 'University',
+      lastName: 'Administrator',
+      role: 'UNIVERSITY_ADMIN',
       isActive: true,
       isEmailVerified: true,
     },
@@ -236,7 +268,8 @@ async function main() {
   console.log('✅ Database seeding completed successfully!');
   console.log('\n📊 Seeded data summary:');
   console.log(`- Super Admin: admin@degreedefenders.gov.in (password: Admin@123)`);
-  console.log(`- Verifier: verifier@degreedefenders.gov.in (password: Admin@123)`);
+  console.log(`- Verifier: verifier@degreedefenders.gov.in (password: Verifier@123)`);
+  console.log(`- University Admin: university@degreedefenders.gov.in (password: University@123)`);
   console.log(`- Institutions: ${institutions.length}`);
   console.log(`- Institution Admins: ${institutionAdmins.length}`);
   console.log(`- Sample Certificates: 3`);

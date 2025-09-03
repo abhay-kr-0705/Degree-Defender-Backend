@@ -21,8 +21,24 @@ async function forceDeploySchema() {
   try {
     // Connect with retry
     console.log('🔄 Connecting to database...');
-    await prisma.$connect();
-    console.log('✅ Connected successfully');
+    let connected = false;
+    for (let i = 0; i < 5; i++) {
+      try {
+        await prisma.$connect();
+        connected = true;
+        console.log('✅ Connected successfully');
+        break;
+      } catch (error) {
+        console.log(`⚠️ Connection attempt ${i + 1}/5 failed: ${error.message}`);
+        if (i < 4) {
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+    }
+    
+    if (!connected) {
+      throw new Error('Failed to connect after 5 attempts');
+    }
 
     // Read and execute SQL schema
     const sqlPath = path.join(__dirname, 'init-db.sql');
