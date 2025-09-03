@@ -18,6 +18,7 @@
     "db:deploy": "node scripts/deploy-schema.js",
     "db:health": "node scripts/connection-health.js",
     "db:test": "node scripts/test-connection.js",
+    "db:force-deploy": "node scripts/force-deploy-schema.js",
     "postinstall": "npx prisma generate"
   },
   "keywords": [
