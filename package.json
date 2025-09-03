@@ -13,7 +13,9 @@
     "db:migrate": "npx prisma migrate deploy",
     "db:seed": "node prisma/seed.js",
     "db:reset": "npx prisma migrate reset --force",
-    "db:studio": "npx prisma studio"
+    "db:studio": "npx prisma studio",
+    "db:check": "node scripts/migrate-db.js",
+    "postinstall": "npx prisma generate"
   },
   "keywords": [
     "certificate-validation",

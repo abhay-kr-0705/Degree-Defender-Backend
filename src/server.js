@@ -69,13 +69,32 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV,
-  });
+app.get('/health', async (req, res) => {
+  try {
+    const { getPrismaClient } = require('./config/database');
+    const prisma = getPrismaClient();
+    
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    
+    res.status(200).json({
+      status: 'OK',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV,
+      database: 'Connected',
+      version: '1.0.0'
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: 'Service Unavailable',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV,
+      database: 'Disconnected',
+      error: error.message
+    });
+  }
 });
 
 // API Routes

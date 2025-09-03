@@ -455,12 +455,20 @@ export interface DashboardStats {
   verifications: {
     total: number;
     recent: number;
-    trends: any[];
+    trends: Array<{
+      date: string;
+      count: number;
+      type: string;
+    }>;
   };
   anomalies: {
     total: number;
     critical: number;
-    topTypes: any[];
+    topTypes: Array<{
+      type: string;
+      count: number;
+      severity: string;
+    }>;
   };
   institutions: {
     total: number;
@@ -522,7 +530,11 @@ export interface TrendParams {
 export interface TrendData {
   timeframe: string;
   groupBy: string;
-  trends: any[];
+  trends: Array<{
+    date: string;
+    count: number;
+    type: string;
+  }>;
   summary: {
     totalVerifications: number;
     validVerifications: number;

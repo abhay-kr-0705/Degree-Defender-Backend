@@ -151,10 +151,32 @@ router.post('/register', validateUserRegistration, async (req, res) => {
       }
     });
   } catch (error) {
-    logger.error('Registration error:', error);
+    logger.error('Registration error:', {
+      error: error.message,
+      stack: error.stack,
+      body: req.body,
+      prismaError: error.code || 'Unknown'
+    });
+    
+    // Handle specific Prisma errors
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists'
+      });
+    }
+    
+    if (error.code === 'P2003') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid reference data provided'
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Internal server error'
+      message: 'Internal server error',
+      ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }
 });

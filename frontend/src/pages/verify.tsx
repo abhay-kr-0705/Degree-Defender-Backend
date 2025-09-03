@@ -9,7 +9,7 @@ import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
-import apiClient from '../lib/api';
+import apiClient, { VerificationResult, QRVerificationResult } from '../lib/api';
 
 const verificationSchema = z.object({
   certificateNumber: z.string().min(1, 'Certificate number is required'),
@@ -24,7 +24,7 @@ type VerificationForm = z.infer<typeof verificationSchema>;
 const VerifyPage: React.FC = () => {
   const [verificationMethod, setVerificationMethod] = useState<'manual' | 'upload' | 'qr'>('manual');
   const [isLoading, setIsLoading] = useState(false);
-  const [verificationResult, setVerificationResult] = useState<any>(null);
+  const [verificationResult, setVerificationResult] = useState<VerificationResult | QRVerificationResult | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const {
