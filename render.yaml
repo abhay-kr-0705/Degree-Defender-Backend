@@ -40,5 +40,3 @@ services:
         value: "5"
       - key: DATABASE_POOL_TIMEOUT
         value: "20"
-      - key: DATABASE_URL_UNPOOLED
-        value: "postgresql://neondb_owner:npg_Vn2AteHPuN7B@ep-wild-resonance-a1cqzct2.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"

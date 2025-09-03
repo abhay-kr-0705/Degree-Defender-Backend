@@ -452,19 +452,60 @@ router.post('/bulk-upload',
         });
       }
 
-      // Process bulk upload (implementation would depend on file format)
-      // This is a placeholder for the bulk upload functionality
+      const allowedFormats = ['.csv', '.xlsx', '.xls'];
+      const fileExt = path.extname(req.file.originalname).toLowerCase();
       
+      if (!allowedFormats.includes(fileExt)) {
+        return res.status(400).json({
+          success: false,
+          error: `Invalid file format. Allowed formats: ${allowedFormats.join(', ')}`
+        });
+      }
+
+      // Process bulk upload based on file format
+      const bulkUploadService = require('../services/bulkUploadService');
+      const result = await bulkUploadService.processBulkUpload(
+        req.file.path,
+        req.file.originalname,
+        req.user.institutionId || req.body.institutionId,
+        req.user.id
+      );
+
+      // Clean up uploaded file
+      try {
+        await fs.unlink(req.file.path);
+      } catch (cleanupError) {
+        logger.warn('File cleanup error:', cleanupError);
+      }
+
+      // Log bulk upload
+      auditLogger.info('Bulk certificate upload', {
+        fileName: req.file.originalname,
+        userId: req.user.id,
+        institutionId: req.user.institutionId,
+        totalRecords: result.totalRecords,
+        successfulUploads: result.successfulUploads,
+        failedUploads: result.failedUploads,
+        ip: req.ip
+      });
+
       res.json({
         success: true,
-        message: 'Bulk upload initiated',
-        data: {
-          fileName: req.file.originalname,
-          status: 'processing'
-        }
+        message: 'Bulk upload completed',
+        data: result
       });
     } catch (error) {
       logger.error('Bulk upload error:', error);
+      
+      // Clean up uploaded file on error
+      if (req.file) {
+        try {
+          await fs.unlink(req.file.path);
+        } catch (cleanupError) {
+          logger.error('File cleanup error:', cleanupError);
+        }
+      }
+
       res.status(500).json({
         success: false,
         error: 'Bulk upload failed'

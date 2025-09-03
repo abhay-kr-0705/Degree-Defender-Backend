@@ -11,45 +11,43 @@ const connectDB = async () => {
         throw new Error('DATABASE_URL environment variable is not set');
       }
 
+      logger.info('🔗 Connecting to Neon database...');
+      
       prisma = new PrismaClient({
-        log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
-        errorFormat: 'pretty',
+        log: ['error', 'warn'],
         datasources: {
           db: {
             url: process.env.DATABASE_URL,
           },
         },
+        errorFormat: 'pretty',
       });
 
-      // Test the connection with retry logic and connection pooling
-      let retries = 5;
+      // Test the connection with retry logic
+      let retries = 3;
       while (retries > 0) {
         try {
           await prisma.$connect();
-          await prisma.$queryRaw`SELECT 1`;
-          logger.info('✅ Database connected successfully');
+          await prisma.$queryRaw`SELECT 1 as test`;
+          logger.info('✅ Database connected successfully to Neon');
           break;
         } catch (error) {
           retries--;
-          if (retries === 0) throw error;
-          logger.warn(`Database connection attempt failed, retrying... (${retries} attempts left)`);
-          
-          // Disconnect before retry to avoid connection pool issues
-          try {
-            await prisma.$disconnect();
-          } catch (disconnectError) {
-            // Ignore disconnect errors during retry
+          if (retries === 0) {
+            logger.error('❌ All connection attempts failed');
+            throw error;
           }
-          
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          logger.warn(`Database connection attempt failed, retrying... (${retries} attempts left)`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
     }
+    
     return prisma;
   } catch (error) {
     logger.error('❌ Database connection failed:', {
-      error: error.message,
-      stack: error.stack,
+      message: error.message,
+      code: error.code,
       databaseUrl: process.env.DATABASE_URL ? 'Set' : 'Not set'
     });
     throw error;
@@ -75,6 +73,19 @@ const getPrismaClient = () => {
   }
   return prisma;
 };
+
+// Handle graceful shutdown
+process.on('SIGINT', async () => {
+  logger.info('Received SIGINT, closing database connection...');
+  await disconnectDB();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  logger.info('Received SIGTERM, closing database connection...');
+  await disconnectDB();
+  process.exit(0);
+});
 
 module.exports = {
   connectDB,

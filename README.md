@@ -1,9 +1,9 @@
-# Authenticity Validator for Academia
+# Degree Defenders - Fake Degree/Certificate Recognition System
 
-A comprehensive web-based platform for validating academic certificates and degrees, built for the Government of Jharkhand's Department of Higher and Technical Education.
+A comprehensive AI-powered platform for detecting and preventing fake degrees and forged academic certificates, built for the Government of Jharkhand's Department of Higher and Technical Education.
 
 ## 🎯 Problem Statement
-Fake degrees and forged academic certificates are a growing issue in India. This platform provides a robust, digital, scalable, and secure solution to validate both legacy certificates and new ERP-generated certificates.
+With increasing digitization, fake degrees and forged academic certificates have become a major concern for higher education institutions, employers, and government bodies. This platform provides a robust, AI-powered, blockchain-enabled solution to detect anomalies, verify authenticity, and prevent the use of fraudulent educational credentials.
 
 ## 🔑 Key Features
 
