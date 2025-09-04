@@ -4,9 +4,7 @@ import toast from 'react-hot-toast';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
-// Debug logging
-console.log('API_BASE_URL:', API_BASE_URL);
-console.log('NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+// Production ready - debug logging removed
 
 class ApiClient {
   private instance: AxiosInstance;
@@ -67,22 +65,17 @@ class ApiClient {
   // Generic request method
   private async request<T>(config: AxiosRequestConfig): Promise<T> {
     try {
-      // Debug logging
-      console.log('Making request with config:', {
-        baseURL: this.instance.defaults.baseURL,
-        url: config.url,
-        method: config.method,
-        fullURL: `${this.instance.defaults.baseURL}${config.url}`
-      });
-      
       const response = await this.instance.request<ApiResponse<T>>(config);
       return response.data.data;
     } catch (error: any) {
-      console.error('Request failed:', {
-        url: config.url,
-        baseURL: this.instance.defaults.baseURL,
-        error: error.response?.data || error.message
-      });
+      // Only log errors in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Request failed:', {
+          url: config.url,
+          baseURL: this.instance.defaults.baseURL,
+          error: error.response?.data || error.message
+        });
+      }
       throw new Error(error.response?.data?.message || error.response?.data?.error || 'Request failed');
     }
   }
