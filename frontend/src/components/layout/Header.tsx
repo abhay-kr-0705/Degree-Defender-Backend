@@ -25,7 +25,7 @@ const Header: React.FC = () => {
   ];
 
   const authenticatedNavigation = [
-    { name: 'Dashboard', href: '/dashboard' },
+    ...(user?.role !== 'PUBLIC' ? [{ name: 'Dashboard', href: '/dashboard' }] : []),
     { name: 'Certificates', href: '/certificates' },
     { name: 'Verifications', href: '/verifications' },
   ];

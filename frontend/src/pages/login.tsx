@@ -36,9 +36,18 @@ const LoginPage: React.FC = () => {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      await login(data.email, data.password);
+      const response = await login(data.email, data.password);
       toast.success('Login successful!');
-      router.push('/dashboard');
+      
+      // Get user from auth store after login
+      const { user } = useAuthStore.getState();
+      
+      // Redirect based on user role
+      if (user?.role === 'PUBLIC') {
+        router.push('/');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
     }
