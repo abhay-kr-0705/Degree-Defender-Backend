@@ -129,6 +129,24 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// API base route - show available endpoints
+app.get('/api', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Degree Defenders API - Available Endpoints',
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      certificates: '/api/certificates',
+      verifications: '/api/verifications',
+      institutions: '/api/institutions',
+      admin: '/api/admin',
+      public: '/api/public'
+    },
+    documentation: 'https://github.com/abhay-kr-0705/Degree-Defender-Backend'
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/certificates', certificateRoutes);
