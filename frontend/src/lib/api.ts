@@ -186,7 +186,7 @@ class ApiClient {
     });
   }
 
-  async verifyQRCode(qrData: string): Promise<QRVerificationResult> {
+  async adminVerifyQRCode(qrData: string): Promise<QRVerificationResult> {
     return this.request<QRVerificationResult>({
       method: 'POST',
       url: '/verifications/qr-verify',
@@ -273,6 +273,25 @@ class ApiClient {
       method: 'POST',
       url: '/public/verify',
       data,
+    });
+  }
+
+  async publicVerifyFile(formData: FormData): Promise<VerificationResult> {
+    return this.request<VerificationResult>({
+      method: 'POST',
+      url: '/public/verify-file',
+      data: formData,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  }
+
+  async verifyQRCode(qrData: string): Promise<QRVerificationResult> {
+    return this.request<QRVerificationResult>({
+      method: 'POST',
+      url: '/public/verify-qr',
+      data: { qrData },
     });
   }
 

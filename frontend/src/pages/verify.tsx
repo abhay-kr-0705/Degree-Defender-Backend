@@ -82,9 +82,15 @@ const VerifyPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      // This would typically involve OCR processing
-      // For now, we'll show a placeholder result
-      toast('File verification feature coming soon');
+      const formData = new FormData();
+      formData.append('certificate', uploadedFile);
+      formData.append('requestedBy', 'Public User');
+      formData.append('requestorEmail', 'user@example.com');
+      formData.append('purpose', 'Certificate verification via file upload');
+
+      const result = await apiClient.publicVerifyFile(formData);
+      setVerificationResult(result);
+      toast.success('Certificate verification completed');
     } catch (error: any) {
       toast.error(error.message || 'File verification failed');
     } finally {
