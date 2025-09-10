@@ -15,7 +15,9 @@ services:
       - key: BCRYPT_ROUNDS
         value: "12"
       - key: CORS_ORIGIN
-        value: "https://degree-defender-frontend.vercel.app,https://degree-defenders-frontend.vercel.app"
+        value: "https://degree-defender-frontend.vercel.app"
+      - key: FRONTEND_URL
+        value: "https://degree-defender-frontend.vercel.app"
       - key: BLOCKCHAIN_ENABLED
         value: "true"
       - key: ETHEREUM_NETWORK

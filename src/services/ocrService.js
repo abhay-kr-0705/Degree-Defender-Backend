@@ -75,6 +75,7 @@ class OCRService {
       logger.info(`OCR completed with confidence: ${data.confidence}%`);
       
       return {
+        success: true,
         text: data.text,
         confidence: data.confidence,
         words: data.words,
@@ -97,6 +98,7 @@ class OCRService {
       const data = await pdfParse(dataBuffer);
       
       return {
+        success: true,
         text: data.text,
         confidence: 95, // PDF text extraction is generally reliable
         pages: data.numpages,
@@ -132,6 +134,37 @@ class OCRService {
       logger.warn('Image preprocessing failed, using original:', error);
       return imagePath;
     }
+  }
+
+  /**
+   * Main text extraction method that handles both images and PDFs
+   */
+  async extractText(filePath) {
+    try {
+      const ext = path.extname(filePath).toLowerCase();
+      
+      if (ext === '.pdf') {
+        return await this.extractTextFromPDF(filePath);
+      } else {
+        return await this.extractTextFromImage(filePath);
+      }
+    } catch (error) {
+      logger.error('Text extraction error:', error);
+      return {
+        success: false,
+        error: error.message,
+        text: '',
+        confidence: 0
+      };
+    }
+  }
+
+  /**
+   * Parse certificate data from extracted text
+   */
+  parseCertificateData(text) {
+    const ocrResult = { text, confidence: 85 };
+    return this.extractCertificateData(ocrResult);
   }
 
   /**

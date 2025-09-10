@@ -20,7 +20,7 @@ const Header: React.FC = () => {
 
   const navigation = [
     { name: 'Home', href: '/' },
-    { name: 'Verify Certificate', href: '/verify' },
+    { name: 'Verify Certificate', href: isAuthenticated ? '/verify' : '/public-verify' },
     { name: 'About', href: '/about' },
   ];
 

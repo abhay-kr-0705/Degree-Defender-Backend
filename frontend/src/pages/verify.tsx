@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,6 +9,8 @@ import Layout from '../components/layout/Layout';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Card from '../components/ui/Card';
+import ProtectedRoute from '../components/auth/ProtectedRoute';
+import { useAuthStore } from '../store/authStore';
 import apiClient, { VerificationResult, QRVerificationResult } from '../lib/api';
 
 const verificationSchema = z.object({
@@ -26,15 +28,25 @@ const VerifyPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [verificationResult, setVerificationResult] = useState<VerificationResult | QRVerificationResult | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const { user } = useAuthStore();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<VerificationForm>({
     resolver: zodResolver(verificationSchema),
   });
+
+  // Set default values from authenticated user
+  useEffect(() => {
+    if (user) {
+      setValue('requestedBy', `${user.firstName} ${user.lastName}`);
+      setValue('requestorEmail', user.email);
+    }
+  }, [user, setValue]);
 
   const onDrop = (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -57,7 +69,7 @@ const VerifyPage: React.FC = () => {
   const handleManualVerification = async (data: VerificationForm) => {
     setIsLoading(true);
     try {
-      const result = await apiClient.publicVerify({
+      const result = await apiClient.verifyCertificate({
         certificateNumber: data.certificateNumber,
         studentName: data.studentName,
         requestedBy: data.requestedBy,
@@ -84,8 +96,8 @@ const VerifyPage: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append('certificate', uploadedFile);
-      formData.append('requestedBy', 'Public User');
-      formData.append('requestorEmail', 'user@example.com');
+      formData.append('requestedBy', user ? `${user.firstName} ${user.lastName}` : 'User');
+      formData.append('requestorEmail', user?.email || '');
       formData.append('purpose', 'Certificate verification via file upload');
 
       const result = await apiClient.publicVerifyFile(formData);
@@ -101,7 +113,7 @@ const VerifyPage: React.FC = () => {
   const handleQRVerification = async (qrData: string) => {
     setIsLoading(true);
     try {
-      const result = await apiClient.verifyQRCode(qrData);
+      const result = await apiClient.adminVerifyQRCode(qrData);
       setVerificationResult(result);
       toast.success('QR code verification completed');
     } catch (error: any) {
@@ -130,7 +142,8 @@ const VerifyPage: React.FC = () => {
   };
 
   return (
-    <Layout title="Verify Certificate - Degree Defenders">
+    <ProtectedRoute fallbackPath="/login">
+      <Layout title="Verify Certificate - Degree Defenders">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
           <h1 className="text-3xl md:text-4xl font-bold text-secondary-900 mb-4">
@@ -389,6 +402,7 @@ const VerifyPage: React.FC = () => {
         )}
       </div>
     </Layout>
+    </ProtectedRoute>
   );
 };
 
