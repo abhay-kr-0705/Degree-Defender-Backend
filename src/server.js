@@ -40,7 +40,7 @@ const corsOptions = {
     
     const allowedOrigins = [
       'http://localhost:3000',
-      'https://degree-defender-frontend.vercel.app',
+      'https://degree-defender.vercel.app',
       'https://degree-defenders-frontend.vercel.app',
       'https://degree-defender-frontend.netlify.app',
       'https://degree-defenders-frontend.netlify.app'
