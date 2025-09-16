@@ -77,6 +77,42 @@ router.post('/upload',
       const crypto = require('crypto');
       const fileHash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
 
+      // Check for duplicate certificate by certificate number
+      const existingCertificate = await prisma.certificate.findFirst({
+        where: {
+          certificateNumber: certificateData.certificateNumber
+        },
+        include: {
+          institution: true
+        }
+      });
+
+      if (existingCertificate) {
+        // Clean up uploaded file
+        try {
+          await fs.unlink(req.file.path);
+        } catch (cleanupError) {
+          logger.error('File cleanup error:', cleanupError);
+        }
+
+        return res.status(409).json({
+          success: false,
+          error: 'Certificate already exists',
+          message: `Certificate with number ${certificateData.certificateNumber} already exists in the database`,
+          data: {
+            existingCertificate: {
+              id: existingCertificate.id,
+              certificateNumber: existingCertificate.certificateNumber,
+              studentName: existingCertificate.studentName,
+              course: existingCertificate.course,
+              institution: existingCertificate.institution?.name,
+              createdAt: existingCertificate.createdAt,
+              status: existingCertificate.status
+            }
+          }
+        });
+      }
+
       // Create certificate record
       const certificate = await prisma.certificate.create({
         data: {
