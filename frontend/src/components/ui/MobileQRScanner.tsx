@@ -98,6 +98,7 @@ const MobileQRScanner: React.FC<QRScannerProps> = ({ onScan, onError, onClose })
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [torchEnabled, setTorchEnabled] = useState(false);
   const [scanCount, setScanCount] = useState(0);
+  const [needsManualStart, setNeedsManualStart] = useState(false);
   const streamRef = useRef<MediaStream | null>(null);
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -131,9 +132,15 @@ const MobileQRScanner: React.FC<QRScannerProps> = ({ onScan, onError, onClose })
   const startCamera = async () => {
     try {
       setError('');
+      setHasPermission(null); // Reset to loading state
       stopStream();
 
-      // Mobile-optimized camera constraints
+      // Check if getUserMedia is supported
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera not supported on this browser');
+      }
+
+      // Mobile-optimized camera constraints with timeout
       const constraints: MediaStreamConstraints = {
         video: {
           facingMode: { ideal: facingMode },
@@ -144,7 +151,13 @@ const MobileQRScanner: React.FC<QRScannerProps> = ({ onScan, onError, onClose })
         audio: false
       };
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      // Add timeout for getUserMedia
+      const streamPromise = navigator.mediaDevices.getUserMedia(constraints);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Camera access timeout')), 10000)
+      );
+
+      const stream = await Promise.race([streamPromise, timeoutPromise]) as MediaStream;
       streamRef.current = stream;
       
       if (videoRef.current) {
@@ -157,14 +170,26 @@ const MobileQRScanner: React.FC<QRScannerProps> = ({ onScan, onError, onClose })
         videoRef.current.setAttribute('muted', 'true');
         videoRef.current.muted = true;
         
-        // Wait for metadata to load
-        await new Promise<void>((resolve) => {
+        // Wait for metadata to load with timeout
+        const metadataPromise = new Promise<void>((resolve, reject) => {
           if (videoRef.current) {
             videoRef.current.onloadedmetadata = () => resolve();
+            videoRef.current.onerror = () => reject(new Error('Video load error'));
+            // Timeout for metadata loading
+            setTimeout(() => reject(new Error('Video metadata timeout')), 5000);
           }
         });
         
-        await videoRef.current.play();
+        await metadataPromise;
+        
+        // Play video with error handling
+        try {
+          await videoRef.current.play();
+        } catch (playError) {
+          console.warn('Auto-play failed, trying manual play:', playError);
+          // Sometimes auto-play fails, but we can still proceed
+        }
+        
         setHasPermission(true);
         setIsScanning(true);
         startScanning();
@@ -173,23 +198,33 @@ const MobileQRScanner: React.FC<QRScannerProps> = ({ onScan, onError, onClose })
       console.error('Camera error:', err);
       let errorMessage = 'Camera access failed';
       
-      switch (err.name) {
-        case 'NotAllowedError':
-          errorMessage = 'Camera permission denied. Please allow camera access and try again.';
-          break;
-        case 'NotFoundError':
-          errorMessage = 'No camera found. Please check your device.';
-          break;
-        case 'NotSupportedError':
-          errorMessage = 'Camera not supported. Try using Chrome or Safari.';
-          break;
-        case 'NotReadableError':
-          errorMessage = 'Camera busy. Close other camera apps and try again.';
-          break;
-        case 'OverconstrainedError':
-          // Retry with basic constraints
-          setTimeout(() => retryBasicCamera(), 1000);
-          return;
+      if (err.message === 'Camera access timeout') {
+        errorMessage = 'Camera access timed out. Please try again or check your browser settings.';
+      } else if (err.message === 'Video metadata timeout') {
+        errorMessage = 'Camera initialization failed. Please refresh and try again.';
+      } else {
+        switch (err.name) {
+          case 'NotAllowedError':
+            errorMessage = 'Camera permission denied. Please allow camera access in your browser settings and refresh the page.';
+            break;
+          case 'NotFoundError':
+            errorMessage = 'No camera found. Please check your device has a camera.';
+            break;
+          case 'NotSupportedError':
+            errorMessage = 'Camera not supported. Please use Chrome, Safari, or Firefox.';
+            break;
+          case 'NotReadableError':
+            errorMessage = 'Camera is busy. Please close other camera apps and try again.';
+            break;
+          case 'OverconstrainedError':
+            // Retry with basic constraints
+            setTimeout(() => retryBasicCamera(), 1000);
+            return;
+          default:
+            if (err.message.includes('not supported')) {
+              errorMessage = 'Camera not supported on this browser. Please use Chrome or Safari.';
+            }
+        }
       }
       
       setError(errorMessage);
@@ -282,8 +317,15 @@ const MobileQRScanner: React.FC<QRScannerProps> = ({ onScan, onError, onClose })
   };
 
   useEffect(() => {
-    startCamera();
-  }, [facingMode]);
+    // Don't auto-start camera, wait for user interaction
+    setNeedsManualStart(true);
+  }, []);
+
+  useEffect(() => {
+    if (!needsManualStart) {
+      startCamera();
+    }
+  }, [facingMode, needsManualStart]);
 
   useEffect(() => {
     return () => stopStream();
@@ -328,12 +370,43 @@ const MobileQRScanner: React.FC<QRScannerProps> = ({ onScan, onError, onClose })
 
       {/* Camera View */}
       <div className="relative aspect-square bg-gray-900 min-h-[350px]">
-        {hasPermission === null && (
+        {needsManualStart && (
+          <div className="absolute inset-0 flex items-center justify-center text-white">
+            <div className="text-center p-4">
+              <Camera className="h-12 w-12 mx-auto mb-4 text-primary-400" />
+              <p className="text-lg mb-4">Ready to scan QR code</p>
+              <Button 
+                onClick={() => {
+                  setNeedsManualStart(false);
+                  setHasPermission(null);
+                }}
+                className="mb-3"
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Start Camera
+              </Button>
+              <br />
+              <Button onClick={handleManualInput} variant="outline" size="sm">
+                Enter QR Data Manually
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {!needsManualStart && hasPermission === null && (
           <div className="absolute inset-0 flex items-center justify-center text-white">
             <div className="text-center p-4">
               <Camera className="h-12 w-12 mx-auto mb-3 opacity-50 animate-pulse" />
               <p className="text-lg mb-2">Starting camera...</p>
-              <p className="text-sm opacity-75">Please allow camera access</p>
+              <p className="text-sm opacity-75">Please allow camera access when prompted</p>
+              <Button 
+                onClick={handleManualInput} 
+                variant="outline" 
+                size="sm"
+                className="mt-3"
+              >
+                Use Manual Entry Instead
+              </Button>
             </div>
           </div>
         )}
