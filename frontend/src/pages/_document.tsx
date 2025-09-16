@@ -8,6 +8,9 @@ export default function Document() {
         <link rel="icon" href="/images/logo.png" />
         <link rel="apple-touch-icon" href="/images/logo.png" />
         
+        {/* Mobile viewport and camera optimization */}
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+        
         {/* Meta tags */}
         <meta name="description" content="Degree Defenders - AI-powered platform for detecting and preventing fake degrees and forged academic certificates" />
         <meta name="keywords" content="degree verification, certificate validation, fake degree detection, blockchain verification" />

@@ -12,6 +12,7 @@ import Card from '../components/ui/Card';
 import ProtectedRoute from '../components/auth/ProtectedRoute';
 import { useAuthStore } from '../store/authStore';
 import apiClient, { VerificationResult, QRVerificationResult } from '../lib/api';
+import MobileQRScanner from '../components/ui/MobileQRScanner';
 
 const verificationSchema = z.object({
   certificateNumber: z.string().min(1, 'Certificate number is required'),
@@ -129,7 +130,7 @@ const VerifyPage: React.FC = () => {
     reset();
   };
 
-  const getStatusIcon = (isValid: boolean) => {
+  const getStatusIcon = (isValid: boolean | undefined) => {
     return isValid ? (
       <CheckCircle className="h-8 w-8 text-success-600" />
     ) : (
@@ -137,8 +138,29 @@ const VerifyPage: React.FC = () => {
     );
   };
 
-  const getStatusColor = (isValid: boolean) => {
+  const getStatusColor = (isValid: boolean | undefined) => {
     return isValid ? 'border-success-200 bg-success-50' : 'border-danger-200 bg-danger-50';
+  };
+
+  const getVerificationStatus = (result: VerificationResult | QRVerificationResult) => {
+    if ('verification' in result) {
+      return result.verification;
+    } else if ('qrVerification' in result) {
+      return {
+        isValid: result.qrVerification.isValid,
+        confidenceScore: result.qrVerification.blockchainValid ? 100 : 50,
+        flaggedReasons: result.qrVerification.blockchainValid ? [] : ['Blockchain verification failed'],
+        verifiedAt: result.qrVerification.qrTimestamp
+      };
+    }
+    return { isValid: false, confidenceScore: 0, flaggedReasons: ['Unknown verification type'], verifiedAt: '' };
+  };
+
+  const getVerificationCode = (result: VerificationResult | QRVerificationResult) => {
+    if ('verificationCode' in result) {
+      return result.verificationCode;
+    }
+    return `QR-${Date.now()}`;
   };
 
   return (
@@ -313,28 +335,27 @@ const VerifyPage: React.FC = () => {
             {verificationMethod === 'qr' && (
               <Card>
                 <h2 className="text-xl font-semibold mb-6">Scan QR Code</h2>
-                <div className="text-center py-12">
-                  <QrCode className="h-24 w-24 mx-auto mb-4 text-secondary-400" />
-                  <p className="text-lg text-secondary-600 mb-4">
-                    QR code scanner will be available here
-                  </p>
-                  <p className="text-sm text-secondary-500">
-                    Point your camera at the QR code on the certificate
-                  </p>
-                </div>
+                <MobileQRScanner
+                  onScan={handleQRVerification}
+                  onError={(error) => {
+                    toast.error(error);
+                    setVerificationMethod('manual');
+                  }}
+                  onClose={() => setVerificationMethod('manual')}
+                />
               </Card>
             )}
           </>
         ) : (
           /* Verification Results */
-          <Card className={`border-2 ${getStatusColor(verificationResult.verification?.isValid)}`}>
+          <Card className={`border-2 ${getStatusColor(getVerificationStatus(verificationResult).isValid)}`}>
             <div className="text-center mb-6">
-              {getStatusIcon(verificationResult.verification?.isValid)}
+              {getStatusIcon(getVerificationStatus(verificationResult).isValid)}
               <h2 className="text-2xl font-bold mt-4 mb-2">
-                {verificationResult.verification?.isValid ? 'Certificate Verified' : 'Verification Failed'}
+                {getVerificationStatus(verificationResult).isValid ? 'Certificate Verified' : 'Verification Failed'}
               </h2>
               <p className="text-lg text-secondary-600">
-                Confidence Score: {verificationResult.verification?.confidenceScore}%
+                Confidence Score: {getVerificationStatus(verificationResult).confidenceScore}%
               </p>
             </div>
 
@@ -360,12 +381,18 @@ const VerifyPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="text-sm text-secondary-600">Institution</div>
-                  <div className="font-medium">{verificationResult.certificate?.institution}</div>
+                  <div className="font-medium">
+                    {typeof verificationResult.certificate?.institution === 'string' 
+                      ? verificationResult.certificate.institution 
+                      : verificationResult.certificate?.institution?.name || 'N/A'}
+                  </div>
                 </div>
                 <div>
                   <div className="text-sm text-secondary-600">Issue Date</div>
                   <div className="font-medium">
-                    {new Date(verificationResult.certificate?.dateOfIssue).toLocaleDateString()}
+                    {verificationResult.certificate?.dateOfIssue 
+                      ? new Date(verificationResult.certificate.dateOfIssue).toLocaleDateString()
+                      : 'N/A'}
                   </div>
                 </div>
               </div>
@@ -374,21 +401,21 @@ const VerifyPage: React.FC = () => {
             {/* Verification Code */}
             <div className="bg-secondary-50 rounded-lg p-4 mb-6">
               <div className="text-sm text-secondary-600 mb-1">Verification Code</div>
-              <div className="font-mono text-lg font-medium">{verificationResult.verificationCode}</div>
+              <div className="font-mono text-lg font-medium">{getVerificationCode(verificationResult)}</div>
               <div className="text-sm text-secondary-500 mt-1">
                 Save this code for future reference
               </div>
             </div>
 
             {/* Flagged Reasons */}
-            {verificationResult.verification?.flaggedReasons?.length > 0 && (
+            {getVerificationStatus(verificationResult).flaggedReasons?.length > 0 && (
               <div className="bg-warning-50 border border-warning-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center mb-2">
                   <AlertCircle className="h-5 w-5 text-warning-600 mr-2" />
                   <div className="font-medium text-warning-800">Issues Detected</div>
                 </div>
                 <ul className="list-disc list-inside text-sm text-warning-700">
-                  {verificationResult.verification.flaggedReasons.map((reason: string, index: number) => (
+                  {getVerificationStatus(verificationResult).flaggedReasons.map((reason: string, index: number) => (
                     <li key={index}>{reason}</li>
                   ))}
                 </ul>
