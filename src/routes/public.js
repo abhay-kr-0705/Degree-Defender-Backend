@@ -1,7 +1,9 @@
 const express = require('express');
 const { getPrismaClient } = require('../config/database');
 const { validateVerificationRequest } = require('../middleware/validation');
+const { authenticate, authorize } = require('../middleware/auth');
 const verificationService = require('../services/verificationService');
+const enhancedVerificationService = require('../services/enhancedVerificationService');
 const ocrService = require('../services/ocrService');
 const { logger } = require('../utils/logger');
 const multer = require('multer');
@@ -44,9 +46,11 @@ const upload = multer({
 });
 
 // @route   POST /api/public/verify
-// @desc    Public certificate verification endpoint
-// @access  Public
-router.post('/verify', 
+// @desc    Certificate verification endpoint (requires authentication)
+// @access  Private (VERIFIER, UNIVERSITY_ADMIN, SUPER_ADMIN)
+router.post('/verify',
+  authenticate,
+  authorize('VERIFIER', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'),
   validateVerificationRequest,
   async (req, res) => {
     try {
@@ -110,9 +114,11 @@ router.post('/verify',
 );
 
 // @route   POST /api/public/verify-file
-// @desc    Public certificate verification via file upload
-// @access  Public
-router.post('/verify-file', 
+// @desc    Verify certificate by uploading file (requires authentication)
+// @access  Private (VERIFIER, UNIVERSITY_ADMIN, SUPER_ADMIN)
+router.post('/verify-file',
+  authenticate,
+  authorize('VERIFIER', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'),
   upload.single('certificate'),
   async (req, res) => {
     try {
@@ -164,14 +170,24 @@ router.post('/verify-file',
         });
       }
 
-      // Perform additional forgery detection
-      const forgeryAnalysis = await verificationService.detectForgery(req.file.path, certificate);
+      // Perform enhanced verification with mismatch detection
+      const enhancedVerification = await enhancedVerificationService.verifyWithMismatchDetection(
+        extractedData,
+        certificate
+      );
 
-      // Create verification request
+      // Generate detailed verification report
+      const verificationReport = enhancedVerificationService.generateVerificationReport(
+        enhancedVerification,
+        extractedData,
+        certificate
+      );
+
+      // Create verification request in database
       const verificationRequest = {
-        requestedBy,
-        requestorEmail,
-        purpose,
+        requestedBy: req.user.email || requestedBy,
+        requestorEmail: req.user.email || requestorEmail,
+        purpose: purpose || 'Certificate Verification',
         ipAddress: req.ip,
         userAgent: req.get('User-Agent'),
         institutionId: certificate.institutionId,
@@ -195,15 +211,29 @@ router.post('/verify-file',
           certificate: {
             certificateNumber: certificate.certificateNumber,
             studentName: certificate.studentName,
+            rollNumber: certificate.rollNumber,
             course: certificate.course,
             passingYear: certificate.passingYear,
             grade: certificate.grade,
+            cgpa: certificate.cgpa,
+            percentage: certificate.percentage,
             institution: certificate.institution.name
           },
-          isValid: result.isValid,
-          confidenceScore: result.confidenceScore,
-          forgeryAnalysis,
+          verification: {
+            isValid: enhancedVerification.isValid,
+            confidenceScore: enhancedVerification.confidenceScore,
+            matchScore: enhancedVerification.matchScore,
+            status: enhancedVerification.isValid ? 'VERIFIED' : 'FAILED',
+            verifiedAt: enhancedVerification.verifiedAt
+          },
+          analysis: {
+            mismatches: enhancedVerification.mismatches,
+            formattingIssues: enhancedVerification.formattingIssues,
+            flaggedReasons: enhancedVerification.flaggedReasons,
+            summary: enhancedVerification.summary
+          },
           extractedData,
+          recommendation: verificationReport.recommendation,
           verificationDate: new Date().toISOString()
         }
       });
@@ -228,9 +258,12 @@ router.post('/verify-file',
 );
 
 // @route   POST /api/public/verify-qr
-// @desc    Public certificate verification via QR code
-// @access  Public
-router.post('/verify-qr', async (req, res) => {
+// @desc    Certificate verification via QR code (requires authentication)
+// @access  Private (VERIFIER, UNIVERSITY_ADMIN, SUPER_ADMIN)
+router.post('/verify-qr',
+  authenticate,
+  authorize('VERIFIER', 'UNIVERSITY_ADMIN', 'SUPER_ADMIN'),
+  async (req, res) => {
   try {
     const { qrData, requestedBy, requestorEmail, purpose } = req.body;
     

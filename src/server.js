@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/auth');
 const certificateRoutes = require('./routes/certificates');
+const certificateGenerationRoutes = require('./routes/certificateGeneration');
 const verificationRoutes = require('./routes/verifications');
 const institutionRoutes = require('./routes/institutions');
 const adminRoutes = require('./routes/admin');
@@ -150,6 +151,7 @@ app.get('/api', (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/certificate-generation', certificateGenerationRoutes);
 app.use('/api/verifications', verificationRoutes);
 app.use('/api/institutions', institutionRoutes);
 app.use('/api/admin', adminRoutes);
@@ -157,6 +159,9 @@ app.use('/api/public', publicRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));
+
+// Serve generated certificates
+app.use('/generated', express.static('generated'));
 
 // Root route - API status
 app.get('/', (req, res) => {
